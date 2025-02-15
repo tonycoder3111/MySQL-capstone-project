@@ -5707,30 +5707,23 @@ select * from customer_churn;
 
 /* Impute mode for the following columns: Tenure, CouponUsed, OrderCount.*/
 
-select Tenure from customer_churn
-where Tenure=(select round(avg(Tenure))from customer_churn);
 
-update customer_churn
-set Tenure=16
-where Tenure is NULL;
+set @Tenure_mode=(select Tenure from customer_churn
+group by tenure
+order by count(*) desc
+limit 1);
 
-select * from customer_churn;
 
-select CouponUsed from customer_churn
-where CouponUsed=(select round(avg(CouponUsed))from customer_churn);
+set @couponused_mode=(select couponused from customer_churn
+group by couponused
+order by count(*) desc
+limit 1);
 
-update customer_churn
-set CouponUsed =2
-where CouponUsed is NULL;
 
-select * from customer_churn;
-
-select OrderCount from customer_churn
-where OrderCount=(select round(avg(OrderCount))from customer_churn);
-
-update customer_churn
-set OrderCount =3
-where OrderCount is NULL;
+set @ordercount_mode=(select ordercount from customer_churn
+group by ordercount
+order by count(*) desc
+limit 1);
 
 select * from customer_churn;
 
@@ -5845,10 +5838,10 @@ group by gender;
 /* ➢ Identify the city tier with the highest number of churned customers whose
 preferred order category is Laptop & Accessory.*/
 
-select preferredordercat,count(*) CustomerCount from customer_churn
+select preferredordercat,citytier from customer_churn
 where churnstatus="churned" and preferredordercat="laptop & accessory"
-group by preferredordercat
-order by CustomerCount desc;
+group by citytier
+order by preferredordercat desc;
 
 /* ➢ Identify the most preferred payment mode among active customers.*/
 
@@ -5880,10 +5873,11 @@ order by customercount DESC;
 
 /* ➢ Identify the gender that utilized the highest number of coupons.*/
 
-select gender, count(*) as Highcoupons from customer_churn
+select gender, 
+sum(couponused) as Highcoupons from customer_churn
 group by gender
 order by Highcoupons desc
-limit 2;
+limit 1;
 
 
 /* ➢ List the number of customers and the maximum hours spent on the app in each
